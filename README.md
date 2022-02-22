@@ -1,6 +1,7 @@
 # SIMON
 - This repository reproduces the experimental results of an anonymous paper.
 - A preprocessing generates **ten different splittings of train/validation/test sets** from simulation data. Then we run experiments with our proposed method and other baselines.
+![appendix](images/appendix.pdf "appendix")
 
 ### Requirements
 * python 3
