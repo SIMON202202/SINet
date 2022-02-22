@@ -1,5 +1,5 @@
 # SIMON
-- This repository is to reproduce the results of an anonymous paper.
+- This repository reproduces the experimental results of an anonymous paper.
 - A preprocessing generates **ten different splittings of train/validation/test sets** from simulation data. Then we run experiments with our proposed method and other baselines.
 
 ### Requirements
