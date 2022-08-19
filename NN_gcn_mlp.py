@@ -5,6 +5,7 @@ import pickle
 import argparse
 import datetime
 import numpy as np
+import scipy.sparse as sp
 from datetime import datetime
 from logging import getLogger, StreamHandler, FileHandler, Formatter, DEBUG
 from sklearn.model_selection import train_test_split
@@ -16,7 +17,7 @@ torch.backends.cudnn.benchmark = True
 sys.path.append(os.path.join(os.path.dirname(__file__), 'model'))  # noqa
 sys.path.append(os.path.join(os.path.dirname(__file__), 'layer'))  # noqa
 sys.path.append(os.path.join(os.path.dirname(__file__), 'util'))  # noqa
-from model_gnn_mlp import GNN  # noqa
+from model_gnn_mlp import GNN,DCN  # noqa
 import util_dataloader as util_dataloader  # noqa
 
 mpl.use('Agg')
@@ -30,6 +31,17 @@ def adj2lap(A):
     A = D_sqrt_inv @ A @ D_sqrt_inv
     return A
 
+def calculate_random_walk_matrix(adj_mx, args):
+    adj_mx = sp.coo_matrix(adj_mx)
+    d = np.array(adj_mx.sum(1))
+    d_inv = np.power(d, -1).flatten()
+    d_inv[np.isinf(d_inv)] = 0.
+    d_mat_inv = sp.diags(d_inv)
+    random_walk_mx = d_mat_inv.dot(adj_mx).tocoo()
+    i = [list(random_walk_mx.row), list(random_walk_mx.col)]
+    v = random_walk_mx.data
+    s = torch.sparse_coo_tensor(i, v, (adj_mx.shape[0], adj_mx.shape[1]))
+    return s.to(args.device)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Example')
@@ -40,7 +52,7 @@ if __name__ == '__main__':
     parser.add_argument('--trainprop', type=float, default=0.7)
 
     parser.add_argument('--model', type=str,
-                        default="Hist2Cum-GCN-MLP-demo")
+                        default="Hist2Cum-DC-MLP-demo")
     parser.add_argument('--alpha', type=float, default=0.0,
                         help="alpha=0 mean, \inf max")
 
@@ -64,6 +76,7 @@ if __name__ == '__main__':
     parser.add_argument('--steprate', type=float, default=0.5)
     parser.add_argument('--dp', type=float, default=0.2)
     parser.add_argument('--act', type=str, default='selu')
+    parser.add_argument('--gc', type=str, default='dc')
 
     parser.add_argument('--disable-cuda', action='store_true',
                         help='Disable CUDA')
@@ -142,13 +155,25 @@ if __name__ == '__main__':
     A = train_dataset.graph.get()
     W = train_dataset.getseatgraph.get_graph()
 
-    A = adj2lap(A)
-    for key in W.keys():
-        W[key] = adj2lap(W[key])
+
+    if args.gc == 'dc':
+        for key in W.keys():
+            W[key] = [
+                calculate_random_walk_matrix(W[key], args),
+                calculate_random_walk_matrix(W[key].T, args)
+            ]
+    else:
+        A = adj2lap(A)
+        for key in W.keys():
+            W[key] = adj2lap(W[key])
 
     y_scaler = ''
-    model = GNN(args.din, args.dtreat, args.dout,
-                A, W, y_scaler, writer, args).to(device=args.device)
+    if args.gc == 'dc':
+        model = DCN(args.din, args.dtreat, args.dout,
+                    A, W, y_scaler, writer, args).to(device=args.device)
+    else:
+        model = GNN(args.din, args.dtreat, args.dout,
+                    A, W, y_scaler, writer, args).to(device=args.device)
 
     valid_dataset = util_dataloader.ShinkokuDataset(
         id=valid_id, Nguide=args.guide, a=args.a, mode='valid', expid=args.expid)

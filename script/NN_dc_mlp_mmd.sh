@@ -1,5 +1,5 @@
 #!/bin/bash
-model="NN-CUM-GCN-MLP-MMD"
+model="NN-DC-MLP-MMD"
 guide="4"
 a="1.0"
 set="rand_50"
@@ -22,10 +22,10 @@ hout="200 400"
 act="selu"
 
 mmds="1e-3 1e-4 1e-5"
-hsic=0.0
 sigma=1.0
+hsic=0.0
 
-hist2cum="True"
+hist2cum="False"
 alpha=0.0
 
 for expid in {0..9} ; do

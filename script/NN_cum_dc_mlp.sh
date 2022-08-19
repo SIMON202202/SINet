@@ -1,23 +1,23 @@
 #!/bin/bash
-model="NN-GCN-MLP"
+model="NN-CUM-DC-MLP"
 guide="4"
 a="1.0"
 set="rand_50"
 trainprop="0.7"
-gc="gcn"
+gc="dc"
 
 epoch="500"
 step="50"
 gpu=0
 gpunum=$(nvidia-smi -L | wc -l)
-phnum=20
+phnum=30
 
 dps="0.0"
 lrs="0.01"
 rates="0.5"
 wds="1e-8"
 
-h="20 40"
+h="20 40" # "10 20 50"
 hout="200 400"
 act="selu"
 
@@ -25,7 +25,7 @@ mmd=0.0
 hsic=0.0
 sigma=1.0
 
-hist2cum="False"
+hist2cum="True"
 alpha=0.0
 
 for expid in {0..9} ; do
@@ -40,12 +40,11 @@ for expid in {0..9} ; do
                   echo gpu $gpu
                   export CUDA_VISIBLE_DEVICES=$(expr $gpu % $gpunum)
                   echo ${CUDA_VISIBLE_DEVICES}
-                  python NN_gcn_mlp.py --traintest ${set} --trainprop ${trainprop} --model ${model} \
-                        --guide ${_guide} --a ${_a} --expid ${expid} \
+                  python NN_gcn_mlp.py --traintest ${set} --trainprop ${trainprop} --model ${model} --guide ${_guide} --a ${_a} --expid ${expid} \
                         --hist2cum ${hist2cum} --alpha ${alpha}\
                         --rep_hidden "${_h},${_h}" --out_hidden "${_o},${_o}"\
                         --mmd ${mmd} --hsic ${hsic}  --sigma ${sigma}  --gc ${gc}\
-                        --epoch ${epoch} --step ${step} --steprate ${rate} --lr ${lr} --wd ${wd} --dp ${dp} --act ${act}&\
+                        --epoch ${epoch} --step ${step} --steprate ${rate} --lr ${lr} --wd ${wd} --dp ${dp}  --act ${act}&\
                   sleep 3
                   if [ $gpu -ge $phnum ] ; then
                     wait

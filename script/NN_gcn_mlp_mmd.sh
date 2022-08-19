@@ -4,6 +4,7 @@ guide="4"
 a="1.0"
 set="rand_50"
 trainprop="0.7"
+gc="gcn"
 
 epoch="500"
 step="50"
@@ -43,7 +44,7 @@ for expid in {0..9} ; do
                     python NN_gcn_mlp.py --traintest ${set} --trainprop ${trainprop} --model ${model} --guide ${_guide} --a ${_a} --expid ${expid} \
                           --hist2cum ${hist2cum} --alpha ${alpha}\
                           --rep_hidden "${_h},${_h}" --out_hidden "${_o},${_o}"\
-                          --mmd ${mmd} --hsic ${hsic}  --sigma ${sigma}\
+                          --mmd ${mmd} --hsic ${hsic}  --sigma ${sigma}  --gc ${gc}\
                           --epoch ${epoch} --step ${step} --steprate ${rate} --lr ${lr} --wd ${wd} --dp ${dp} &\
                     sleep 3
                     if [ $gpu -ge $phnum ] ; then

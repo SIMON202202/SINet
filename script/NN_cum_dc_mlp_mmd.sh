@@ -1,5 +1,5 @@
 #!/bin/bash
-model="NN-CUM-GCN-MLP-MMD"
+model="NN-CUM-DC-MLP-MND"
 guide="4"
 a="1.0"
 set="rand_50"

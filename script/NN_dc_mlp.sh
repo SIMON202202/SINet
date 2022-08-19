@@ -1,10 +1,10 @@
 #!/bin/bash
-model="NN-GCN-MLP"
+model="NN-DC-MLP"
 guide="4"
 a="1.0"
 set="rand_50"
 trainprop="0.7"
-gc="gcn"
+gc="dc"
 
 epoch="500"
 step="50"
